@@ -1,0 +1,305 @@
+name: "ZF_track_train"
+
+input: "data"
+input_dim: 1
+input_dim: 256
+input_dim: 14
+input_dim: 14
+
+input: "labels1"
+input_dim: 1
+input_dim: 1
+input_dim: 14
+input_dim: 14
+
+#input: "labels_weights1"
+#input_dim: 256
+#input_dim: 1
+#input_dim: 8
+#input_dim: 8
+
+input: "labels2"
+input_dim: 1
+input_dim: 1
+input_dim: 14
+input_dim: 14
+
+#input: "labels_weights2"
+#input_dim: 256
+#input_dim: 1
+#input_dim: 8
+#input_dim: 8
+
+layer {
+   name: "conv_proposal1"
+  type: "Convolution"
+   bottom: "data"
+   top: "conv_proposal1"
+	param {
+		lr_mult: 10.0
+	}
+	param {
+		lr_mult: 20.0
+	}
+   convolution_param{
+	   num_output: 256
+	   kernel_size: 3
+	   pad: 1
+	   stride: 1
+	   weight_filler {
+		 type: "gaussian"
+		 std: 0.01
+	   }
+	   bias_filler {
+		 type: "constant"
+		 value: 0
+	   }
+   }
+}
+
+layer {
+   name: "relu_proposal1"
+   type: "ReLU"
+   bottom: "conv_proposal1"
+   top: "conv_proposal1"
+}
+
+
+#-----------------------output1-------------------------------------------------------
+layer {
+   name: "proposal_cls_score1_1"
+   type: "Convolution"
+   bottom: "conv_proposal1"
+   top: "proposal_cls_score1_1"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+   convolution_param{
+	   num_output: 2   # 2(bg/fg) * 9(anchors) =18
+	   kernel_size: 1
+	   pad: 0
+	   stride: 1
+	   weight_filler {
+		 type: "gaussian"
+		 std: 0.01
+	   }
+	   bias_filler {
+		 type: "constant"
+		 value: 0
+	   }
+   }
+}
+
+
+# to enable the calculation of softmax loss, we first reshape blobs related to SoftmaxWithLoss
+layer {
+   bottom: "proposal_cls_score1_1"
+   top: "proposal_cls_score_reshape1_1"
+   name: "proposal_cls_score_reshape1_1"
+   type: "Reshape"
+   reshape_param{
+	   shape {
+			dim: 0 
+			dim: 2
+			dim: -1 
+			dim: 0
+		}
+	}
+}
+
+
+layer {
+   bottom: "labels1"
+   top: "labels_reshape1"
+   name: "labels_reshape1"
+   type: "Reshape"
+   reshape_param{
+	   shape {
+			dim: 0 
+			dim: 1
+			dim: -1 
+			dim: 0
+		}
+	}
+}
+
+#layer {
+#   bottom: "labels_weights1"
+#   top: "labels_weights_reshape1"
+#   name: "labels_weights_reshape1"
+#   type: "Reshape"
+#   reshape_param{
+#	   shape {
+#			dim: 0 
+#			dim: 1
+#			dim: -1 
+#			dim: 0
+#		}
+#	}
+#}
+
+
+layer {
+   name: "loss1"
+   type: "SoftmaxWithLoss"
+   bottom: "proposal_cls_score_reshape1_1" 
+   bottom: "labels_reshape1"
+   #bottom: "labels_weights_reshape1"
+   top: "loss_cls1"
+   loss_weight: 1
+   loss_param {
+    ignore_label: -1    
+   }
+   include
+   {
+    phase: TRAIN
+   }
+}
+
+layer {
+   name: "accuarcy1"
+   type: "Accuracy"
+   bottom: "proposal_cls_score_reshape1_1"
+   bottom: "labels_reshape1"
+   top: "accuarcy1"
+include
+	{
+		phase: TEST
+ 	}
+}
+
+#-------output2-----------------------------------------------------------------------------------
+layer {
+   name: "proposal_cls_score1_2"
+   type: "Convolution"
+   bottom: "conv_proposal1"
+   top: "proposal_cls_score1_2"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+   convolution_param{
+	   num_output: 2   # 2(bg/fg) * 9(anchors) =18
+	   kernel_size: 1
+	   pad: 0
+	   stride: 1
+	   weight_filler {
+		 type: "gaussian"
+		 std: 0.01
+	   }
+	   bias_filler {
+		 type: "constant"
+		 value: 0
+	   }
+   }
+}
+
+
+layer {
+   bottom: "proposal_cls_score1_2"
+   top: "proposal_cls_score_reshape1_2"
+   name: "proposal_cls_score_reshape1_2"
+   type: "Reshape"
+   reshape_param{
+	   shape {
+			dim: 0 
+			dim: 2
+			dim: -1 
+			dim: 0
+		}
+	}
+}
+
+
+layer {
+   bottom: "labels2"
+   top: "labels_reshape2"
+   name: "labels_reshape2"
+   type: "Reshape"
+   reshape_param{
+	   shape {
+			dim: 0 
+			dim: 1
+			dim: -1 
+			dim: 0
+		}
+	}
+}
+
+
+#layer {
+#   bottom: "labels_weights2"
+#   top: "labels_weights_reshape2"
+#   name: "labels_weights_reshape2"
+#   type: "Reshape"
+#   reshape_param{
+#	   shape {
+#			dim: 0 
+#			dim: 1
+#			dim: -1 
+#			dim: 0
+#		}
+#	}
+#}
+
+layer {
+   name: "loss2"
+   type: "SoftmaxWithLoss"
+   bottom: "proposal_cls_score_reshape1_2" 
+   bottom: "labels_reshape2"
+   #bottom: "labels_weights_reshape2"
+   top: "loss_cls2"
+   loss_weight: 10
+   loss_param {
+    ignore_label: -1    
+   }
+   include
+   {
+	phase: TRAIN
+   }
+}
+
+layer {
+   name: "accuarcy2"
+   type: "Accuracy"
+   bottom: "proposal_cls_score_reshape1_2"
+   bottom: "labels_reshape2"
+   top: "accuarcy2"
+include
+	{
+		phase: TEST
+ 	}
+}
+
+#-----------------------output------------------------
+
+
+layer {
+   name: "proposal_cls_prob1"
+   type: "Softmax"
+   bottom: "proposal_cls_score_reshape1_1"
+   top: "proposal_cls_prob1"
+
+}
+
+layer {
+   name: "proposal_cls_prob2"
+   type: "Softmax"
+   bottom: "proposal_cls_score_reshape1_2"
+   top: "proposal_cls_prob2"
+
+}
+
+
+
+layer {
+   name: "silence"
+   type: "Silence"
+   bottom: "proposal_cls_prob2"
+   bottom: "proposal_cls_prob1"   
+}

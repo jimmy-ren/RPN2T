@@ -1,0 +1,310 @@
+name: "ZF_learn"
+
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 107
+input_dim: 107
+
+input: "labels"
+input_dim: 1
+input_dim: 256  #output of ZF
+input_dim: 14
+input_dim: 14
+
+
+input: "labels_weights"
+input_dim: 1
+input_dim: 256
+input_dim: 14
+input_dim: 14
+
+input:"mean"
+input_dim: 1
+input_dim: 256
+input_dim: 14
+input_dim: 14
+
+input:"stds"
+input_dim: 1
+input_dim: 256
+input_dim: 14
+input_dim: 14
+
+
+
+# ------------------------ layer 1 -----------------------------
+layer {
+	name: "conv1"
+	type: "Convolution"
+	bottom: "data"
+	top: "conv1"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+	convolution_param {
+		num_output: 96
+		kernel_size: 7
+		pad: 3
+		stride: 4
+		weight_filler {
+			type: "gaussian"
+			std: 0.01
+		}
+		bias_filler {
+			type: "constant"
+			value: 0
+		}
+	}
+}
+
+layer {
+	name: "relu1"
+	type: "ReLU"
+	bottom: "conv1"
+	top: "conv1"
+}
+
+layer {
+	name: "norm1"
+	type: "LRN"
+	bottom: "conv1"
+	top: "norm1"
+	lrn_param {
+		local_size: 3
+		alpha: 0.00005
+		beta: 0.75
+		norm_region: WITHIN_CHANNEL
+	}
+}
+
+# ------------------------ layer 2 -----------------------------
+layer {
+	name: "conv2"
+	type: "Convolution"
+	bottom: "norm1"
+	top: "conv2"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+	convolution_param {
+		num_output: 256
+		kernel_size: 5
+		pad: 2
+		stride: 2
+		weight_filler {
+			type: "gaussian"
+			std: 0.01
+		}
+		bias_filler {
+			type: "constant"
+			value: 1
+		}
+	}
+}
+
+layer {
+	name: "relu2"
+	type: "ReLU"
+	bottom: "conv2"
+	top: "conv2"
+}
+
+layer {
+	name: "norm2"
+	type: "LRN"
+	bottom: "conv2"
+	top: "norm2"
+	lrn_param {
+		local_size: 3
+		alpha: 0.00005
+		beta: 0.75
+		norm_region: WITHIN_CHANNEL
+	}
+}
+
+# ------------------------ layer 3 -----------------------------
+layer {
+	name: "conv3"
+	type: "Convolution"
+	bottom: "norm2"
+	top: "conv3"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+	convolution_param {
+		num_output: 384
+		kernel_size: 3
+		pad: 1
+		stride: 1
+		weight_filler {
+			type: "gaussian"
+			std: 0.01
+		}
+		bias_filler {
+			type: "constant"
+			value: 0
+		}
+	}
+}
+
+layer {
+	name: "relu3"
+	type: "ReLU"
+	bottom: "conv3"
+	top: "conv3"
+}
+
+# ------------------------ layer 4 -----------------------------
+layer {
+	name: "conv4"
+	type: "Convolution"
+	bottom: "conv3"
+	top: "conv4"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+	convolution_param {
+		num_output: 384
+		kernel_size: 3
+		pad: 1
+		stride: 1
+		weight_filler {
+			type: "gaussian"
+			std: 0.01
+		}
+		bias_filler {
+			type: "constant"
+			value: 1
+		}
+	}
+}
+
+layer {
+	name: "relu4"
+	type: "ReLU"
+	bottom: "conv4"
+	top: "conv4"
+}
+
+# ------------------------ layer 5 -----------------------------
+
+layer {
+	name: "conv5"
+	type: "Convolution"
+	bottom: "conv4"
+	top: "conv5"
+	param {
+		lr_mult: 1.0
+	}
+	param {
+		lr_mult: 2.0
+	}
+	convolution_param {
+		num_output: 256
+		kernel_size: 3
+		pad: 1
+		stride: 1
+		weight_filler {
+			type: "gaussian"
+			std: 0.01
+		}
+		bias_filler {
+			type: "constant"
+			value: 1
+		}
+	}
+}
+
+layer {
+  name: "eltwise_sum"
+  type: "Eltwise"
+  bottom: "conv5"
+  bottom: "mean"
+  top: "eltwise_sum"
+  eltwise_param { operation: SUM }
+}
+
+layer{
+  name:"eltwise_multi"
+  type: "Eltwise"
+  bottom: "eltwise_sum"
+  bottom: "stds"
+  top:"eltwise_multi"
+  eltwise_param { operation: PROD }
+}
+
+#layer {
+#	name: "relu5"
+#	type: "ReLU"
+#	bottom: "conv5"
+#	top: "conv5"
+#}
+
+#-----------------------output-------------------------
+
+
+#layer {
+#  name: "loss"
+#  type: "SmoothL1Loss"
+#  bottom: "eltwise_multi"
+#  bottom: "labels"
+#  bottom: "labels_weights"
+#  top: "loss"
+#  loss_weight: 1
+
+#}
+
+layer {
+  name: "eltwise_multi_flat"
+  type: "Flatten"
+  bottom: "eltwise_multi"
+  top: "eltwise_multi_flat"
+}
+
+#layer {
+#  name: "conv5_flat"
+#  type: "Flatten"
+#  bottom: "conv5"
+#  top: "conv5_flat"
+#}
+
+layer {
+  name: "labels_flat"
+  type: "Flatten"
+  bottom: "labels"
+  top: "labels_flat"
+}
+
+
+layer {
+   name: "silence"
+   type: "Silence"
+   bottom: "labels_weights"   
+   #bottom: "mean"   
+   #bottom: "stds"   
+}
+
+layer {
+  name: "loss"
+  type: "EuclideanLoss"
+  bottom: "eltwise_multi_flat"
+  bottom: "labels_flat"
+  top: "loss"
+}
+
+
+
+
