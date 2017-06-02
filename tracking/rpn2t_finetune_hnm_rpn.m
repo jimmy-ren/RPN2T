@@ -1,10 +1,4 @@
 function [poss, hardnegs] = rpn2t_finetune_hnm_rpn(solver,pos_data,neg_data,opts,maxiter)
-% MDNET_FINETUNE_HNM   
-% Train a CNN by SGD, with hard minibatch mining.
-%
-% modified from cnn_train() in the MatConvNet library.
-% Hyeonseob Nam, 2015
-%
 
  opts.useGpu = true;
  opts.conserveMemory = true ;
