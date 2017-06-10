@@ -26,7 +26,8 @@ If you're using this code in a publication, please cite our paper.
 
 This code is tested on 64 bit Linux (Ubuntu 14.04 LTS).
 
-**Prerequisites**
+**Prerequisites**     
+      
   0. MATLAB (tested with R2014b)  
   0. Caffe (included in this repository `external/_caffe/`)   
   0. For GPU support, a GPU, CUDA toolkit and cuDNN will be needed. We have tested in `GTX TitanX(MAXWELL)` with `CUDA7.5+cuDNNv5` and `GTX 1080` with `CUDA8.0+cuDNNv5.1`.
