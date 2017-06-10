@@ -8,7 +8,7 @@ on several large scale benchmarks including OTB50, OTB100 and VOT2016.
 
 Detailed description of the system is provided by our paper(https://arxiv.org/pdf/1705.10447.pdf).
 
-This software is implemented using [Caffe](https://github.com/BVLC/caffe/) and part of [R-CNN](https://github.com/ShaoqingRen/faster_rcnn).
+This software is implemented using [Caffe](https://github.com/BVLC/caffe/) and part of [Faster_rcnn](https://github.com/ShaoqingRen/faster_rcnn).
 
 ### Citation
 
